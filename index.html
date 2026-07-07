@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Afterglow"/>
 <meta name="theme-color" content="#1B3A4B"/>
-<link rel="manifest" href="manifest.json"/>
-<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="apple-touch-icon" href="./icons/icon-192.png"/>
 <title>Alaska Afterglow</title>
 
 <style>
@@ -210,6 +210,64 @@ body {
   font-style: italic;
   line-height: 1.7;
   max-width: 280px;
+}
+.offline-status {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.status-pill.cached {
+  background: rgba(45,80,22,0.5);
+  border-color: rgba(122,158,110,0.4);
+  color: #A8D08A;
+}
+.status-pill.not-cached {
+  background: rgba(184,135,58,0.2);
+  border-color: rgba(184,135,58,0.4);
+  color: var(--gold-light);
+}
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-pill.cached .status-dot { background: #7EC85A; }
+.status-pill.not-cached .status-dot { background: var(--gold-light); animation: pulse 1.5s infinite; }
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.btn-save-offline {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(184,135,58,0.5);
+  border-radius: var(--radius);
+  color: var(--gold-light);
+  font-family: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-save-offline:active { background: rgba(184,135,58,0.2); transform: scale(0.97); }
+.btn-save-offline.done {
+  border-color: rgba(126,200,90,0.5);
+  color: #A8D08A;
 }
 
 /* ─── SETUP SCREEN ──────────────────────────────────────── */
@@ -989,6 +1047,15 @@ body {
       July 29 – August 8
     </div>
     <div class="cover-quote">"A good journey gives you views. A great one gives you stories with oddly specific details."</div>
+    <div class="offline-status">
+      <div class="status-pill not-cached" id="cache-status">
+        <div class="status-dot"></div>
+        <span id="cache-status-text">Checking offline status…</span>
+      </div>
+      <button class="btn-save-offline" id="btn-save-offline" onclick="saveForOffline()" style="display:none">
+        ⬇ Save for Offline Use
+      </button>
+    </div>
   </div>
   <nav class="bottom-nav">
     <button class="nav-btn active" onclick="showScreen('cover')" id="nav-cover">
@@ -2267,11 +2334,74 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Service worker
+  // Service worker — relative path works on any host/subpath
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      // Once SW is active, check cache status
+      reg.addEventListener('updatefound', checkCacheStatus);
+      navigator.serviceWorker.ready.then(checkCacheStatus);
+    }).catch(() => {});
   }
+
+  // Check cache status immediately too (for returning visits)
+  checkCacheStatus();
+
+  // Online/offline listener
+  window.addEventListener('online',  checkCacheStatus);
+  window.addEventListener('offline', checkCacheStatus);
 });
+
+// ═══════════════════════════════════════════════════
+//  OFFLINE / CACHE STATUS
+// ═══════════════════════════════════════════════════
+async function checkCacheStatus() {
+  const pill = document.getElementById('cache-status');
+  const text = document.getElementById('cache-status-text');
+  const btn  = document.getElementById('btn-save-offline');
+  if (!pill || !text) return;
+
+  try {
+    const cache = await caches.open('alaska-afterglow-v1');
+    const keys  = await cache.keys();
+    const hasHTML = keys.some(r => r.url.includes('index.html') || r.url.endsWith('/') || r.url.endsWith('/Alaska/'));
+
+    if (hasHTML) {
+      pill.className = 'status-pill cached';
+      text.textContent = 'Saved — works without Wi-Fi ✓';
+      if (btn) btn.style.display = 'none';
+    } else {
+      pill.className = 'status-pill not-cached';
+      text.textContent = 'Not yet saved for offline';
+      if (btn) btn.style.display = 'inline-block';
+    }
+  } catch {
+    pill.className = 'status-pill not-cached';
+    text.textContent = navigator.onLine ? 'Connected — tap to save offline' : 'No connection';
+    if (btn && navigator.onLine) btn.style.display = 'inline-block';
+  }
+}
+
+async function saveForOffline() {
+  const btn = document.getElementById('btn-save-offline');
+  if (btn) { btn.textContent = '⏳ Saving…'; btn.disabled = true; }
+
+  try {
+    const cache = await caches.open('alaska-afterglow-v1');
+    const assets = [
+      './index.html',
+      './manifest.json',
+      './sw.js',
+      './icons/icon-192.png',
+      './icons/icon-512.png'
+    ];
+    await cache.addAll(assets);
+    showToast('Saved! Works without Wi-Fi now ✓');
+    checkCacheStatus();
+  } catch (e) {
+    if (btn) { btn.textContent = '⬇ Save for Offline Use'; btn.disabled = false; }
+    showToast('Could not save — check your connection');
+  }
+}
 </script>
 </body>
 </html>
