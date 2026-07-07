@@ -1,0 +1,2277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Afterglow"/>
+<meta name="theme-color" content="#1B3A4B"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<title>Alaska Afterglow</title>
+
+<style>
+/* ─── Design Tokens ─────────────────────────────────────── */
+:root {
+  --ivory:       #F5F0E8;
+  --ivory-dark:  #EDE8DC;
+  --midnight:    #1B3A4B;
+  --teal:        #2A6B7C;
+  --teal-light:  #4A9BAA;
+  --gold:        #B8873A;
+  --gold-light:  #D4A55A;
+  --spruce:      #2D5016;
+  --sage:        #7A9E6E;
+  --warm-white:  #FDFBF7;
+  --text-main:   #2C2416;
+  --text-muted:  #7A6E60;
+  --line:        rgba(184,135,58,0.25);
+  --card-bg:     rgba(255,252,245,0.85);
+  --shadow:      0 2px 20px rgba(27,58,75,0.10);
+  --shadow-lg:   0 8px 40px rgba(27,58,75,0.18);
+  --radius:      14px;
+  --radius-sm:   8px;
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bot:    env(safe-area-inset-bottom, 0px);
+}
+
+/* ─── Reset & Base ──────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  background: var(--ivory);
+  color: var(--text-main);
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ─── App Shell ─────────────────────────────────────────── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* ─── Screens ───────────────────────────────────────────── */
+.screen {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+.screen.active { display: flex; }
+
+/* ─── Scrollable Content Area ───────────────────────────── */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: calc(80px + var(--safe-bot));
+}
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* ─── Top Bar ───────────────────────────────────────────── */
+.topbar {
+  background: var(--midnight);
+  color: var(--ivory);
+  padding: calc(var(--safe-top) + 14px) 20px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+.topbar h1 {
+  font-size: 1rem;
+  font-weight: normal;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  flex: 1;
+  text-align: center;
+}
+.topbar-btn {
+  background: none;
+  border: none;
+  color: var(--ivory);
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  opacity: 0.85;
+  min-width: 32px;
+  text-align: center;
+}
+.topbar-btn:active { opacity: 0.5; }
+.topbar-sub {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--gold-light);
+  text-transform: uppercase;
+  text-align: center;
+  margin-top: 1px;
+}
+
+/* ─── Bottom Nav ────────────────────────────────────────── */
+.bottom-nav {
+  background: var(--midnight);
+  display: flex;
+  padding-bottom: var(--safe-bot);
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  position: relative;
+  z-index: 10;
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 4px 8px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  gap: 3px;
+  transition: color 0.2s;
+  font-family: inherit;
+}
+.nav-btn.active { color: var(--gold-light); }
+.nav-btn:active { opacity: 0.6; }
+.nav-icon { font-size: 1.3rem; line-height: 1; }
+.nav-label { font-size: 0.58rem; letter-spacing: 0.07em; text-transform: uppercase; }
+
+/* ─── COVER SCREEN ──────────────────────────────────────── */
+#screen-cover .scroll-area {
+  background: linear-gradient(165deg, var(--midnight) 0%, #0D2433 40%, #1B3A4B 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px calc(100px + var(--safe-bot));
+  text-align: center;
+  gap: 0;
+}
+.cover-eyebrow {
+  font-size: 0.65rem;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  margin-bottom: 20px;
+}
+.cover-glacier {
+  font-size: 5rem;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 4px 16px rgba(74,155,170,0.4));
+}
+.cover-title {
+  font-size: 2.2rem;
+  font-weight: normal;
+  color: var(--ivory);
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+.cover-subtitle {
+  font-size: 0.8rem;
+  color: rgba(245,240,232,0.65);
+  letter-spacing: 0.10em;
+  font-style: italic;
+  margin-bottom: 36px;
+}
+.cover-divider {
+  width: 48px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin-bottom: 36px;
+}
+.cover-trip {
+  font-size: 0.72rem;
+  color: rgba(245,240,232,0.5);
+  letter-spacing: 0.10em;
+  line-height: 1.8;
+  text-transform: uppercase;
+}
+.cover-trip strong {
+  color: var(--gold-light);
+  font-weight: normal;
+  display: block;
+  font-size: 0.78rem;
+}
+.cover-quote {
+  margin-top: 36px;
+  font-size: 0.8rem;
+  color: rgba(245,240,232,0.5);
+  font-style: italic;
+  line-height: 1.7;
+  max-width: 280px;
+}
+
+/* ─── SETUP SCREEN ──────────────────────────────────────── */
+.setup-section {
+  padding: 28px 20px 16px;
+}
+.setup-section h2 {
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  color: var(--midnight);
+  font-weight: normal;
+  margin-bottom: 6px;
+}
+.setup-section p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.setup-field {
+  margin-bottom: 16px;
+}
+.setup-field label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 6px;
+}
+.setup-field input {
+  width: 100%;
+  background: var(--warm-white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  outline: none;
+}
+.setup-field input:focus {
+  border-color: var(--teal-light);
+  box-shadow: 0 0 0 3px rgba(42,107,124,0.12);
+}
+.traveler-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ritual-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 0 20px 20px;
+  border-left: 3px solid var(--gold);
+  box-shadow: var(--shadow);
+}
+.ritual-card h3 {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+}
+.ritual-step {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+.ritual-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--midnight);
+  color: var(--gold-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+.ritual-step p {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-main);
+}
+.ritual-step strong { color: var(--midnight); }
+
+/* ─── JOURNAL / DAY SCREENS ─────────────────────────────── */
+.day-header {
+  background: var(--midnight);
+  padding: calc(var(--safe-top) + 16px) 20px 20px;
+  flex-shrink: 0;
+}
+.day-eyebrow {
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  margin-bottom: 4px;
+}
+.day-title {
+  font-size: 1.5rem;
+  font-weight: normal;
+  color: var(--ivory);
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+.day-subtitle {
+  font-size: 0.78rem;
+  color: rgba(245,240,232,0.55);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* Episode selector */
+.episode-selector {
+  background: var(--midnight);
+  padding: 0 20px 16px;
+  flex-shrink: 0;
+}
+.episode-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+.episode-scroll::-webkit-scrollbar { display: none; }
+.ep-pill {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: rgba(245,240,232,0.65);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.ep-pill.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--midnight);
+  font-weight: bold;
+}
+.ep-pill:active { opacity: 0.6; }
+
+/* Day intro banner */
+.day-intro {
+  background: linear-gradient(135deg, var(--midnight) 0%, var(--teal) 100%);
+  margin: 20px 20px 0;
+  border-radius: var(--radius);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.day-intro::before {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 100px; height: 100px;
+  background: radial-gradient(circle, rgba(184,135,58,0.2) 0%, transparent 70%);
+}
+.day-intro-word {
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  margin-bottom: 4px;
+}
+.day-intro-def {
+  font-size: 0.85rem;
+  color: rgba(245,240,232,0.75);
+  font-style: italic;
+}
+.day-intro-text {
+  font-size: 0.85rem;
+  color: rgba(245,240,232,0.85);
+  line-height: 1.65;
+  margin-top: 10px;
+}
+
+/* Section cards */
+.section-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  margin: 16px 20px 0;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.section-header {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-icon {
+  font-size: 1.2rem;
+  width: 32px;
+  text-align: center;
+}
+.section-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+  flex: 1;
+}
+.section-body { padding: 16px 20px; }
+
+/* Question items */
+.q-item {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.q-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.q-num {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.q-text {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--text-main);
+  font-style: italic;
+}
+
+/* Journal entry inputs */
+.journal-entry {
+  margin-bottom: 18px;
+}
+.journal-entry:last-child { margin-bottom: 0; }
+.journal-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 7px;
+  display: block;
+}
+.journal-input {
+  width: 100%;
+  background: var(--ivory);
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 8px 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  outline: none;
+  resize: none;
+  min-height: 52px;
+  line-height: 1.5;
+}
+.journal-input:focus {
+  border-bottom-color: var(--teal-light);
+}
+.journal-input::placeholder { color: var(--text-muted); font-style: italic; font-size: 0.82rem; }
+
+/* Field note */
+.field-note {
+  background: linear-gradient(135deg, rgba(27,58,75,0.06) 0%, rgba(42,107,124,0.06) 100%);
+  border-left: 3px solid var(--teal-light);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 14px 16px;
+  margin: 16px 20px;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.field-note strong {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--teal);
+  font-style: normal;
+  margin-bottom: 4px;
+}
+
+/* Mission checklist */
+.mission-list { list-style: none; }
+.mission-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+.mission-item:last-child { border-bottom: none; }
+.mission-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 0.2s;
+  font-size: 0.75rem;
+  color: transparent;
+}
+.mission-item.checked .mission-check {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: white;
+}
+.mission-text {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-main);
+  flex: 1;
+  padding-top: 1px;
+}
+.mission-item.checked .mission-text {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+/* Awe moment highlight */
+.awe-moment {
+  background: linear-gradient(135deg, #FFF8EE 0%, #FFF3E0 100%);
+  border-radius: var(--radius);
+  margin: 16px 20px 0;
+  padding: 20px;
+  border: 1px solid rgba(184,135,58,0.2);
+  box-shadow: var(--shadow);
+}
+.awe-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.awe-label::before { content: '✦'; font-size: 0.7rem; }
+.awe-question {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--midnight);
+  font-style: italic;
+  margin-bottom: 14px;
+}
+.awe-textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(184,135,58,0.35);
+  padding: 8px 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  outline: none;
+  resize: none;
+  min-height: 64px;
+  line-height: 1.6;
+}
+.awe-textarea:focus { border-bottom-color: var(--gold); }
+.awe-textarea::placeholder { color: var(--gold-light); font-style: italic; font-size: 0.82rem; opacity: 0.7; }
+
+/* ─── WILDLIFE TRACKER ───────────────────────────────────── */
+.tracker-section {
+  margin: 20px 20px 0;
+}
+.tracker-title {
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.tracker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.tracker-item {
+  background: var(--card-bg);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 1px 6px rgba(27,58,75,0.07);
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.tracker-item.checked {
+  background: var(--midnight);
+  border-color: var(--teal-light);
+}
+.tracker-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1.5px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  color: transparent;
+  transition: all 0.2s;
+}
+.tracker-item.checked .tracker-check {
+  background: var(--teal-light);
+  border-color: var(--teal-light);
+  color: white;
+}
+.tracker-name {
+  font-size: 0.78rem;
+  line-height: 1.3;
+  color: var(--text-main);
+  flex: 1;
+}
+.tracker-item.checked .tracker-name {
+  color: var(--ivory);
+}
+.tracker-emoji {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.tracker-progress {
+  background: var(--midnight);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin: 16px 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.progress-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal-light), var(--gold-light));
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.progress-label {
+  font-size: 0.72rem;
+  color: var(--gold-light);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* ─── ANSWER GUIDE ───────────────────────────────────────── */
+.guide-ep-header {
+  background: linear-gradient(135deg, var(--midnight) 0%, var(--teal) 100%);
+  margin: 16px 20px 0;
+  border-radius: var(--radius);
+  padding: 16px 20px;
+}
+.guide-ep-title {
+  font-size: 1rem;
+  font-weight: normal;
+  color: var(--ivory);
+  letter-spacing: 0.04em;
+}
+.guide-ep-sub {
+  font-size: 0.72rem;
+  color: var(--gold-light);
+  margin-top: 3px;
+  font-style: italic;
+}
+.answer-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  margin: 12px 20px 0;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.answer-question {
+  padding: 16px 20px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  -webkit-tap-highlight-color: transparent;
+}
+.answer-question:last-child { border-bottom: none; }
+.answer-q-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--midnight);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--gold-light);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.answer-q-text {
+  flex: 1;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--midnight);
+  font-style: italic;
+}
+.answer-chevron {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  transition: transform 0.25s;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+.answer-body {
+  display: none;
+  padding: 0 20px 0 60px;
+}
+.answer-body.open {
+  display: block;
+  animation: slideDown 0.2s ease;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.answer-text {
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--text-main);
+  padding: 12px 0 16px;
+}
+.answer-text .did-you-know {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  color: var(--teal);
+  font-style: italic;
+}
+.answer-open .answer-chevron { transform: rotate(90deg); }
+.guide-note {
+  background: var(--midnight);
+  margin: 16px 20px;
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 0.78rem;
+  color: rgba(245,240,232,0.65);
+  font-style: italic;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ─── MEMORY PORTFOLIO ───────────────────────────────────── */
+.portfolio-hero {
+  background: linear-gradient(165deg, var(--midnight) 0%, #0D2433 100%);
+  padding: calc(var(--safe-top) + 32px) 28px 32px;
+  text-align: center;
+}
+.portfolio-icon { font-size: 3rem; margin-bottom: 12px; }
+.portfolio-hero h2 {
+  font-size: 1.4rem;
+  font-weight: normal;
+  color: var(--ivory);
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.portfolio-hero p {
+  font-size: 0.78rem;
+  color: rgba(245,240,232,0.55);
+  font-style: italic;
+  line-height: 1.6;
+}
+.portfolio-divider {
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 16px auto 0;
+}
+
+.memory-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  margin: 16px 20px 0;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border-top: 2px solid var(--gold);
+}
+.memory-card-title {
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.memory-card-prompt {
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.memory-card textarea {
+  width: 100%;
+  background: var(--ivory);
+  border: none;
+  border-bottom: 1px solid var(--line);
+  padding: 8px 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  outline: none;
+  resize: none;
+  min-height: 52px;
+  line-height: 1.5;
+}
+.memory-card textarea:focus { border-bottom-color: var(--gold); }
+.memory-card textarea::placeholder { color: var(--text-muted); font-style: italic; font-size: 0.82rem; }
+
+/* Badges */
+.badges-section {
+  padding: 8px 0;
+}
+.badge-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.badge-item:last-child { border-bottom: none; }
+.badge-item:active { background: rgba(184,135,58,0.06); }
+.badge-emoji {
+  font-size: 1.8rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.badge-info { flex: 1; }
+.badge-name {
+  font-size: 0.85rem;
+  color: var(--midnight);
+  font-weight: normal;
+  margin-bottom: 3px;
+}
+.badge-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  font-style: italic;
+}
+.badge-awardee {
+  font-size: 0.7rem;
+  color: var(--teal);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.badge-awardee input {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  padding: 2px 0;
+  font-family: inherit;
+  font-size: 0.78rem;
+  color: var(--text-main);
+  outline: none;
+}
+.badge-awardee input:focus { border-bottom-color: var(--teal); }
+.badge-awardee input::placeholder { color: var(--text-muted); font-style: italic; }
+
+/* ─── Section dividers ───────────────────────────────────── */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line), transparent);
+  margin: 20px;
+}
+
+/* ─── Buttons ────────────────────────────────────────────── */
+.btn-primary {
+  display: block;
+  width: calc(100% - 40px);
+  margin: 16px 20px;
+  background: var(--midnight);
+  color: var(--ivory);
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary:active { opacity: 0.7; transform: scale(0.98); }
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  color: var(--midnight);
+}
+
+/* ─── Toast ──────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: calc(90px + var(--safe-bot));
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--midnight);
+  color: var(--ivory);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ─── Utilities ──────────────────────────────────────────── */
+.gold-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 4px 0 16px;
+}
+.spacer-bottom { height: 20px; }
+.section-intro {
+  padding: 16px 20px 0;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══════════ COVER SCREEN ══════════ -->
+<div id="screen-cover" class="screen active">
+  <div class="scroll-area">
+    <div class="cover-eyebrow">Platinum Traveler Edition</div>
+    <div class="cover-glacier">🏔️</div>
+    <div class="cover-title">Alaska<br>Afterglow</div>
+    <div class="cover-subtitle">An Expedition Journal for Curious Travelers</div>
+    <div class="cover-divider"></div>
+    <div class="cover-trip">
+      Holland America Line<br>
+      <strong>D2L Denali + Glacier Discovery</strong>
+      July 29 – August 8
+    </div>
+    <div class="cover-quote">"A good journey gives you views. A great one gives you stories with oddly specific details."</div>
+  </div>
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="showScreen('cover')" id="nav-cover">
+      <span class="nav-icon">🏔️</span><span class="nav-label">Home</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('journal')" id="nav-journal">
+      <span class="nav-icon">📖</span><span class="nav-label">Journal</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('wildlife')" id="nav-wildlife">
+      <span class="nav-icon">🦅</span><span class="nav-label">Wildlife</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('guide')" id="nav-guide">
+      <span class="nav-icon">🔍</span><span class="nav-label">Answers</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('memory')" id="nav-memory">
+      <span class="nav-icon">✦</span><span class="nav-label">Memory</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ══════════ JOURNAL SCREEN ══════════ -->
+<div id="screen-journal" class="screen">
+  <div class="day-header">
+    <div class="day-eyebrow" id="day-eyebrow">Episode 1 · Anchorage</div>
+    <div class="day-title" id="day-title">The Journey Begins</div>
+    <div class="day-subtitle" id="day-subtitle">July 29</div>
+  </div>
+  <div class="episode-selector">
+    <div class="episode-scroll" id="episode-scroll">
+      <!-- pills generated by JS -->
+    </div>
+  </div>
+  <div class="scroll-area" id="journal-body">
+    <!-- content generated by JS -->
+  </div>
+  <nav class="bottom-nav">
+    <button class="nav-btn" onclick="showScreen('cover')" id="nav-cover2">
+      <span class="nav-icon">🏔️</span><span class="nav-label">Home</span>
+    </button>
+    <button class="nav-btn active" onclick="showScreen('journal')" id="nav-journal2">
+      <span class="nav-icon">📖</span><span class="nav-label">Journal</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('wildlife')" id="nav-wildlife2">
+      <span class="nav-icon">🦅</span><span class="nav-label">Wildlife</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('guide')" id="nav-guide2">
+      <span class="nav-icon">🔍</span><span class="nav-label">Answers</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('memory')" id="nav-memory2">
+      <span class="nav-icon">✦</span><span class="nav-label">Memory</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ══════════ WILDLIFE SCREEN ══════════ -->
+<div id="screen-wildlife" class="screen">
+  <div class="topbar">
+    <span style="min-width:32px"></span>
+    <div>
+      <h1>Wildlife Tracker</h1>
+      <div class="topbar-sub">Alaska Afterglow Expedition</div>
+    </div>
+    <span style="min-width:32px"></span>
+  </div>
+  <div class="scroll-area">
+    <div id="tracker-progress-bar" class="tracker-progress">
+      <span class="progress-label" id="tracker-count">0 of 36</span>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="tracker-fill" style="width:0%"></div>
+      </div>
+      <span style="font-size:1rem">🔭</span>
+    </div>
+    <div id="wildlife-body"><!-- generated --></div>
+    <div class="spacer-bottom"></div>
+  </div>
+  <nav class="bottom-nav">
+    <button class="nav-btn" onclick="showScreen('cover')" id="nav-cover3">
+      <span class="nav-icon">🏔️</span><span class="nav-label">Home</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('journal')" id="nav-journal3">
+      <span class="nav-icon">📖</span><span class="nav-label">Journal</span>
+    </button>
+    <button class="nav-btn active" onclick="showScreen('wildlife')" id="nav-wildlife3">
+      <span class="nav-icon">🦅</span><span class="nav-label">Wildlife</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('guide')" id="nav-guide3">
+      <span class="nav-icon">🔍</span><span class="nav-label">Answers</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('memory')" id="nav-memory3">
+      <span class="nav-icon">✦</span><span class="nav-label">Memory</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ══════════ GUIDE SCREEN ══════════ -->
+<div id="screen-guide" class="screen">
+  <div class="topbar">
+    <span style="min-width:32px"></span>
+    <div>
+      <h1>Expedition Guide</h1>
+      <div class="topbar-sub">Reveal answers after discussing</div>
+    </div>
+    <span style="min-width:32px"></span>
+  </div>
+  <div class="scroll-area">
+    <div class="section-intro">Tap any question to reveal the answer. Share with the group <em>after</em> everyone has had a chance to guess.</div>
+    <div id="guide-body"><!-- generated --></div>
+    <div class="spacer-bottom"></div>
+  </div>
+  <nav class="bottom-nav">
+    <button class="nav-btn" onclick="showScreen('cover')" id="nav-cover4">
+      <span class="nav-icon">🏔️</span><span class="nav-label">Home</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('journal')" id="nav-journal4">
+      <span class="nav-icon">📖</span><span class="nav-label">Journal</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('wildlife')" id="nav-wildlife4">
+      <span class="nav-icon">🦅</span><span class="nav-label">Wildlife</span>
+    </button>
+    <button class="nav-btn active" onclick="showScreen('guide')" id="nav-guide4">
+      <span class="nav-icon">🔍</span><span class="nav-label">Answers</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('memory')" id="nav-memory4">
+      <span class="nav-icon">✦</span><span class="nav-label">Memory</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ══════════ MEMORY SCREEN ══════════ -->
+<div id="screen-memory" class="screen">
+  <div class="scroll-area">
+    <div class="portfolio-hero">
+      <div class="portfolio-icon">✦</div>
+      <h2>The Memory Portfolio</h2>
+      <p>At journey's end, choose your finest moments from each category.</p>
+      <div class="portfolio-divider"></div>
+    </div>
+    <div id="memory-body"><!-- generated --></div>
+    <div class="spacer-bottom"></div>
+  </div>
+  <nav class="bottom-nav">
+    <button class="nav-btn" onclick="showScreen('cover')" id="nav-cover5">
+      <span class="nav-icon">🏔️</span><span class="nav-label">Home</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('journal')" id="nav-journal5">
+      <span class="nav-icon">📖</span><span class="nav-label">Journal</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('wildlife')" id="nav-wildlife5">
+      <span class="nav-icon">🦅</span><span class="nav-label">Wildlife</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('guide')" id="nav-guide5">
+      <span class="nav-icon">🔍</span><span class="nav-label">Answers</span>
+    </button>
+    <button class="nav-btn active" onclick="showScreen('memory')" id="nav-memory5">
+      <span class="nav-icon">✦</span><span class="nav-label">Memory</span>
+    </button>
+  </nav>
+</div>
+
+</div><!-- /app -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════
+
+const EPISODES = [
+  {
+    num: 1,
+    location: 'Anchorage',
+    title: 'The Journey Begins',
+    date: 'July 29',
+    word: 'Arrival',
+    wordDef: 'Not every journey begins at an airport. Sometimes it begins when the light, air, or view feels different enough that everyone notices.',
+    intro: 'Every memorable journey has at least two beginnings. The first is when we leave home. The second is usually quieter — the moment someone realizes, "We\'re really here." Today does not need to be about seeing everything. It is about arriving. Take a breath. Look around. Check whether your jacket is enough jacket.',
+    aweQ: 'What made you stop and say "Wow" today?',
+    tableQs: [
+      'What happened today that no camera could fully capture?',
+      'Complete this sentence: I knew this trip had truly begun when…',
+      'If you had to describe today\'s feeling using only one word, what would it be? Why?',
+      'What surprised you most about your first impressions of Alaska?',
+      'If someone could experience only one moment from today, which moment would you choose for them?'
+    ],
+    eagleEye: [
+      'What natural color dominated today\'s landscape?',
+      'Who first noticed something that made everyone else look?',
+      'What small detail do you think most travelers walked right past today?',
+      'Who earned today\'s Eagle Eye badge? Why?'
+    ],
+    discovery: [
+      'Why does Alaska stay light so late during summer?',
+      'What does the name "Alaska" mean?',
+      'Tomorrow we begin toward Denali. The mountain has a name much older than maps. Can you guess what it means?',
+      'Looking around today, did anything make you wonder, "How do people live here?"'
+    ],
+    sharedDiscovery: [
+      'Complete this sentence: Today I became curious about…',
+      'If someone who had never visited Alaska asked, "What feels different?" what would you tell them?'
+    ],
+    mission: [
+      'A glacier-fed river',
+      'A raven',
+      'A mountain that still holds snow',
+      'A braided river',
+      'A roadside wildflower',
+      'A place where the landscape suddenly changes',
+      'A moment when everyone on the bus looks out the same window'
+    ],
+    logFields: [
+      "Today's Highlight",
+      "One thing I learned",
+      "A question I want answered",
+      "The photograph I'll probably look at first when I get home",
+      "The funniest thing someone said today",
+      "Something I'm grateful for tonight"
+    ],
+    fieldNote: 'Tomorrow, look for one thing you have never noticed on a trip before — a river color, a bird call, a flower, or the local talent for making long distances sound normal.'
+  },
+  {
+    num: 2,
+    location: 'The Road to Denali',
+    title: 'Some journeys are destinations in disguise',
+    date: 'July 30',
+    word: 'Perspective',
+    wordDef: 'Distance changes how scale feels. Alaska is very good at demonstrating this.',
+    intro: 'This morning, we set out for Denali. By the end of the day, the destination may have some serious competition from the road itself. Alaska has a way of changing our sense of scale. The roads become longer. The rivers become wider. The forests seem endless. Mountains appear where the horizon should be. Today is not built for speed. It is built for perspective, window-gazing, and occasionally asking, "How far away is that mountain, really?"',
+    aweQ: 'What made you stop and say "Wow" today?',
+    tableQs: [
+      'Which moment today unexpectedly became your favorite?',
+      'If every photograph from today disappeared except one, which would you save? Why?',
+      'What surprised you most about traveling through Alaska?',
+      'What changed the most outside your window during today\'s journey?',
+      'Complete this sentence: Today\'s landscape reminded me that…'
+    ],
+    eagleEye: [
+      'Which came first today: a glacier-fed river, snow-covered mountains, a bald eagle, or a moose?',
+      'What color appeared again and again throughout today\'s drive?',
+      'Did everyone suddenly look out the same side of the bus at some point? What caught everyone\'s attention?',
+      'Who earned today\'s Pathfinder badge? Why?'
+    ],
+    discovery: [
+      'The mountain we\'re traveling toward is called Denali. What does that name mean?',
+      'Many rivers looked cloudy, gray, or even turquoise. Why?',
+      'We may have crossed several broad rivers that split into many channels. What creates a braided river?',
+      'You\'ll hear the word permafrost several times during this trip. What exactly is it, and why does it matter?'
+    ],
+    sharedDiscovery: [
+      'What is one thing you noticed today that you had never noticed on any previous vacation?',
+      'If someone had secretly moved today\'s road trip somewhere else in the world, what clues would still convince you that you were in Alaska?'
+    ],
+    mission: [
+      'A moose',
+      'Caribou',
+      'Dall sheep',
+      'A raven',
+      'A braided river',
+      'Tundra',
+      'Snow above the tree line',
+      'A moment of complete silence'
+    ],
+    logFields: [
+      "The moment I'll probably remember first",
+      "Something that surprised me",
+      "One question tomorrow might answer",
+      "Today's funniest moment",
+      "Today's best photograph",
+      "Something I'm grateful for tonight"
+    ],
+    fieldNote: 'Tomorrow in Denali, wildlife is not on our schedule. Binoculars help. So does patience. So does not mistaking every brown rock for a bear, though almost everyone gets one free pass.'
+  },
+  {
+    num: 3,
+    location: 'Denali National Park',
+    title: 'Where Wilderness Still Decides',
+    date: 'July 31',
+    word: 'Patience',
+    wordDef: 'Nature does not hurry. Our bus probably will not either.',
+    intro: 'There are places in the world where people shape the landscape. Today, we enter a place where the landscape is still very much in charge. Denali runs on its own timetable. Wildlife appears when it chooses. Clouds decide whether the mountain will reveal itself. Even the silence has range. Nothing performs on schedule here, which is rude for planners and excellent for stories.',
+    aweQ: 'What made you stop and say "Wow" today?',
+    tableQs: [
+      'What happened today that no photograph could truly capture?',
+      'If you could replay one moment from today exactly as it happened, which would you choose?',
+      'What surprised you most about Denali?',
+      'Which sound from today do you hope you never forget?',
+      'Complete this sentence: Today I realized wilderness means…'
+    ],
+    eagleEye: [
+      'What animal did our group notice first?',
+      'What changed more often today: the weather or the scenery?',
+      'What small detail do you think almost everyone on our bus missed?',
+      'Who earned today\'s Naturalist badge? Why?'
+    ],
+    discovery: [
+      'Why are private vehicles allowed on only a small portion of the park road?',
+      'Moose look surprisingly tall. Why are their legs so long?',
+      'Wolves live here. Yet most visitors never see one. Why?',
+      'Today we probably crossed braided rivers again. How does a single river become many rivers?'
+    ],
+    sharedDiscovery: [
+      'What did Denali show you about patience?',
+      'Do you think today\'s experience would have felt different if wildlife had appeared every five minutes? Why?'
+    ],
+    mission: [
+      'A mountain reflected in still water',
+      'A river changing color',
+      'A tunnel',
+      'A bald eagle',
+      'A waterfall',
+      'The first glimpse of the ocean',
+      'The moment everyone quietly looks out the same window'
+    ],
+    logFields: [
+      "The moment I'll remember first",
+      "Something I almost missed",
+      "One thing I understand better now",
+      "Today's funniest moment",
+      "The photograph that tells today's story",
+      "Something I'm grateful for"
+    ],
+    fieldNote: 'Denali is a useful reminder that a quiet day can still be full. Count weather changes, animal signs, river braids, and the number of times someone says, "Look over there."'
+  },
+  {
+    num: 4,
+    location: 'The Alaska Railroad',
+    title: 'Following the Rivers to the Sea',
+    date: 'August 1',
+    word: 'Journey',
+    wordDef: 'Not every destination can be reached quickly. Some are meant to unfold mile by mile.',
+    intro: 'This morning we left the quiet wilderness of Denali. Tonight we\'ll fall asleep on a ship. Between those two moments lies one of Alaska\'s great journeys. The railroad doesn\'t fight the landscape. It follows it. The tracks curve where rivers have flowed for centuries. They slip through valleys carved long before people imagined trains. Today\'s engineering note is not about speed. It is about finding the path that nature made possible.',
+    aweQ: 'When today did you think, "I wish this moment could last a little longer"?',
+    tableQs: [
+      'Which moment today unexpectedly became your favorite?',
+      'If someone asked you to describe today\'s train ride using only three words, which words would you choose?',
+      'What changed outside your window that you didn\'t expect?',
+      'When did everyone suddenly stop talking and simply look outside? What caught your attention?',
+      'Complete this sentence: Today\'s journey reminded me that…'
+    ],
+    eagleEye: [
+      'Did today\'s landscape contain more rivers, mountains, forest, or wetlands? Explain.',
+      'What color appeared most often outside your window?',
+      'What was the smallest detail that almost everyone else missed?',
+      'Who earned today\'s Pathfinder badge?'
+    ],
+    discovery: [
+      'Why do railroads often follow rivers instead of crossing mountains?',
+      'Why did many rivers today appear gray, milky, or turquoise?',
+      'Why was the Alaska Railroad originally built?',
+      'Today we entered Whittier. Almost everyone arrives through one extraordinary tunnel. Why is there only one?',
+      'Tonight we board a ship large enough to feel like a floating town. Why does a steel ship float?'
+    ],
+    sharedDiscovery: [
+      'What piece of engineering impressed you most today?',
+      'Nature shaped today\'s landscape. People shaped today\'s journey. Which impressed you more? Why?'
+    ],
+    mission: [
+      'Ice that looks blue instead of white',
+      'Waterfalls flowing directly from cliffs',
+      'Floating ice of different sizes',
+      'Harbor seals resting on ice',
+      'Birds circling near the glacier',
+      'A sudden drop in temperature',
+      'The first sound of the glacier before you see movement'
+    ],
+    logFields: [
+      "The view I'll remember most",
+      "One thing I learned today",
+      "A question tomorrow may answer",
+      "Today's funniest quote",
+      "My favorite photograph",
+      "Something I'm grateful for"
+    ],
+    fieldNote: 'Railroads are practical things, but this one also doubles as a moving geology lesson. Bonus points for spotting where water, rock, and engineering all negotiated a truce.'
+  },
+  {
+    num: 5,
+    location: 'Hubbard Glacier',
+    title: 'Where Time Moves in Ice',
+    date: 'August 2',
+    word: 'Ancient',
+    wordDef: 'Some things move so slowly that we forget they are moving at all. Glaciers are a reminder that slow does not mean still.',
+    intro: 'Today we meet something difficult to imagine — a river made of ice. Not frozen water sitting still. A living river. Moving. Growing. Cracking. Breathing in its own slow way. It has been here long before our ship. Long before railroads. Long before cameras. Long before anyone called this place Alaska. Today asks for a different speed. Look. Listen. Wait. Repeat as needed.',
+    aweQ: 'What made you stop and whisper, "Wow"?',
+    tableQs: [
+      'What happened today that no video could truly capture?',
+      'If someone asked, "What does a glacier sound like?" what would you tell them?',
+      'What surprised you more: its size, its color, its movement, or the silence surrounding it? Why?',
+      'At what moment today did time seem to slow down?',
+      'Complete this sentence: Today reminded me that…'
+    ],
+    eagleEye: [
+      'Did you notice more floating ice, waterfalls, birds, or shades of blue?',
+      'How many different colors of ice do you remember seeing?',
+      'What detail do you think most passengers walked past without noticing?',
+      'Who earned today\'s Moment Keeper badge?'
+    ],
+    discovery: [
+      'Why does glacier ice often appear blue instead of white?',
+      'What is glacier calving? Why can it happen without warning?',
+      'Hubbard Glacier is unusual among North American glaciers. What makes it different?',
+      'As we approached the glacier, many of us felt the temperature drop. Why?',
+      'Harbor seals often rest on floating ice near glaciers. Why is the ice such a good nursery?'
+    ],
+    sharedDiscovery: [
+      'Today\'s glacier has existed far longer than any of us. How did that change the way you experienced today?',
+      'Which was more impressive: seeing the glacier at first glance, or giving it time and noticing more? Why?'
+    ],
+    mission: [
+      'More than one glacier',
+      'A harbor seal resting on floating ice',
+      'A sea otter',
+      'A humpback whale',
+      'A mountain goat',
+      'A bald eagle',
+      'A waterfall flowing directly from the cliffs',
+      'A place where young forest meets bare rock'
+    ],
+    logFields: [
+      "The moment that felt timeless",
+      "Something I understand better now",
+      "One thing that surprised me",
+      "Today's funniest moment",
+      "The photograph that best tells today's story",
+      "Something I'm grateful for"
+    ],
+    fieldNote: 'Glacier ice may look still, but gravity is always at work. If you hear a crack or boom, that is ice reminding everyone it has a sound system.'
+  },
+  {
+    num: 6,
+    location: 'Glacier Bay National Park',
+    title: 'A Landscape Still Becoming',
+    date: 'August 3',
+    word: 'Renewal',
+    wordDef: 'New habitat does not appear all at once. It arrives in stages, starting small and getting steadily more complicated.',
+    intro: 'Yesterday we stood before one remarkable glacier. Today we enter an entire landscape still under construction. Not by people or machines, but by ice, water, rock, plants, animals, and a lot of time. Only a few centuries ago, much of Glacier Bay lay hidden beneath one immense sheet of ice. Today, new forests rise where glaciers once stood. Few places make ecological change this visible. Today, we are watching Earth keep editing the draft.',
+    aweQ: 'What made you stop and say, "Wow," today?',
+    tableQs: [
+      'Which moment from today felt the most peaceful?',
+      'If every photograph disappeared except one, which image from today would you save? Why?',
+      'What did you notice today that surprised you?',
+      'When did everyone around you become unusually quiet? What do you think caused that moment?',
+      'Complete this sentence: Today reminded me that nature…'
+    ],
+    eagleEye: [
+      'What did you notice more often today: waterfalls, glaciers, forest, or wildlife?',
+      'Which animal seemed happiest in Glacier Bay?',
+      'What small detail do you think almost everyone missed today?',
+      'Who earned today\'s Curious Explorer badge?'
+    ],
+    discovery: [
+      'Why do National Park Rangers come aboard ships entering Glacier Bay?',
+      'Why are there so many waterfalls here?',
+      'A few hundred years ago, much of Glacier Bay looked completely different. What happened?',
+      'How does a bare landscape slowly become a forest?',
+      'Why do humpback whales return here every summer?'
+    ],
+    sharedDiscovery: [
+      'Today\'s landscape shows change in progress. Where else have you seen nature rebuilding itself?',
+      'If someone asked you to explain Glacier Bay in one sentence, what would you say?'
+    ],
+    mission: [
+      'A building more than 100 years old',
+      'The White Pass railroad',
+      'A wooden boardwalk',
+      'A historic photograph displayed in town',
+      'A mountain waterfall',
+      'A bald eagle',
+      'A story from the Gold Rush you didn\'t know',
+      'One place where the past still feels present'
+    ],
+    logFields: [
+      "Today's quietest moment",
+      "Something I learned",
+      "A question that stayed with me",
+      "Today's funniest memory",
+      "The photograph I'll treasure most",
+      "Something I'm grateful for"
+    ],
+    fieldNote: 'Glacier Bay is a living timeline: bare rock, moss, alder, spruce, wildlife. If ecosystems had before-and-after photos, this place would have the album.'
+  },
+  {
+    num: 7,
+    location: 'Skagway',
+    title: 'Where Dreams Climbed the Mountains',
+    date: 'August 4',
+    word: 'Determination',
+    wordDef: 'Hope, risk, and questionable trail conditions powered a lot of Gold Rush history.',
+    intro: 'At first glance, Skagway feels almost too small to have caused this much paperwork, ambition, and bad footwear. But in 1897, this peaceful place became one of the busiest gateways in North America. Thousands of hopeful prospectors arrived carrying dreams, supplies, and probably more optimism than was medically advisable. Their determination shaped the stories this town still tells today.',
+    aweQ: 'What made you stop and say, "Wow," today?',
+    tableQs: [
+      'Which place today made you feel most connected to the past?',
+      'If you could spend one extra hour in Skagway, where would you go? Why?',
+      'What surprised you most about this historic town?',
+      'Which moment today best captured the spirit of adventure?',
+      'Complete this sentence: Today\'s history reminded me that…'
+    ],
+    eagleEye: [
+      'What color appeared most often in town?',
+      'Did you notice more historic buildings, railway bridges, mountain views, or flowers?',
+      'What small detail do you think most visitors overlooked today?',
+      'Who earned today\'s Story Keeper badge?'
+    ],
+    discovery: [
+      'Why did thousands of people travel through Skagway during the Klondike Gold Rush?',
+      'Why was the White Pass Trail considered one of the most difficult routes to the Yukon?',
+      'Who was Jefferson "Soapy" Smith, and why is he still remembered today?',
+      'Why is the White Pass & Yukon Route Railroad considered one of North America\'s great engineering achievements?',
+      'Many people who came seeking gold never became wealthy. Who often made the most reliable income during the Gold Rush?'
+    ],
+    sharedDiscovery: [
+      'Today\'s history was not only about gold. What else do you think people were searching for?',
+      'Would you have made the journey north in 1898 if there were no guarantee of success? Why or why not?'
+    ],
+    mission: [
+      'A floatplane taking off',
+      'The Alaska State Capitol',
+      'A glacier',
+      'A bald eagle',
+      'A mountain waterfall',
+      'A totem pole',
+      'A local business that\'s been there for generations',
+      'One way life in Juneau differs from life back home'
+    ],
+    logFields: [
+      "Today's favorite story",
+      "Something I learned about history",
+      "A question I still have",
+      "Today's funniest moment",
+      "The photograph that best captures Skagway",
+      "Something I'm grateful for"
+    ],
+    fieldNote: 'Gold Rush math was not kind to everyone. Many steady fortunes came from selling food, transport, lodging, and supplies to people chasing the gold.'
+  },
+  {
+    num: 8,
+    location: 'Juneau',
+    title: 'A Capital Shaped by Mountains and Sea',
+    date: 'August 5',
+    word: 'Adaptation',
+    wordDef: 'Adaptation here is not abstract. It has wings, docks, ferries, rain gear, and very good local timing.',
+    intro: 'Most capital cities become centers of government because they\'re easy to reach. Juneau followed a different path. Mountains rise behind it. Channels surround it. Glaciers watch from a distance. There is no highway connecting Juneau to the rest of North America\'s road system. Yet life here does not feel isolated. It feels adapted, in the practical Alaska sense of "there is probably a boat or plane for that."',
+    aweQ: 'What made you stop and say, "Wow," today?',
+    tableQs: [
+      'What place today made you pause the longest?',
+      'If every photograph disappeared except one, which image from today would you save? Why?',
+      'What surprised you most about Juneau?',
+      'Which conversation today taught you something unexpected?',
+      'Complete this sentence: Today I discovered that living in Alaska means…'
+    ],
+    eagleEye: [
+      'Did you notice more mountains, water, forest, or glaciers?',
+      'How many floatplanes did you see today?',
+      'What detail do you think most visitors walked right past?',
+      'Who earned today\'s Connector badge?'
+    ],
+    discovery: [
+      'Why isn\'t Juneau connected by road to the rest of North America\'s highway system?',
+      'If you visited Mendenhall Glacier today, why has the glacier changed so much over the past century?',
+      'Why are floatplanes part of everyday life in Southeast Alaska?',
+      'Why do bald eagles thrive around Juneau?',
+      'Southeast Alaska is home to a temperate rainforest. How can a rainforest exist this far north?'
+    ],
+    sharedDiscovery: [
+      'What adaptation by the people of Juneau impressed you most?',
+      'If you lived here for one year, what do you think would take the longest to get used to?'
+    ],
+    mission: [
+      'A totem pole with an animal you recognize',
+      'A bald eagle',
+      'A salmon, if they\'re running',
+      'A floatplane taking off or landing',
+      'Moss growing on a tree',
+      'A building standing on pilings',
+      'A carving or artwork that tells a story',
+      'One place where the rainforest feels completely quiet'
+    ],
+    logFields: [
+      "Today's greatest surprise",
+      "Something I understand better",
+      "One question I still have",
+      "Today's funniest moment",
+      "The photograph I'll share first",
+      "Something I'm grateful for"
+    ],
+    fieldNote: 'Juneau is a capital without a road link to the continent\'s highway system. That one fact explains a surprising amount about daily life here.'
+  },
+  {
+    num: 9,
+    location: 'Ketchikan',
+    title: 'Where Rain Tells Stories',
+    date: 'August 6',
+    word: 'Heritage',
+    wordDef: 'Some stories are written in books. Others are carved into wood, carried by rivers, and remembered by families and communities.',
+    intro: 'Ketchikan greets us differently — with rain, with cedar, with the scent of the sea. Here, the rainforest is not just a backdrop. It is part of everyday life. Trees gather moisture from the air. Moss softens almost every surface. Streams carry salmon back toward the places where life began. Carved cedar poles carry stories, identity, and history in a form that does not need a Wi-Fi signal.',
+    aweQ: 'What made you stop and say, "Wow," today?',
+    tableQs: [
+      'What surprised you most about Ketchikan?',
+      'Which place today made you slow your pace without realizing it?',
+      'If every photograph disappeared except one, which one would you keep? Why?',
+      'What natural sound will always remind you of today?',
+      'Complete this sentence: Today I learned that forests…'
+    ],
+    eagleEye: [
+      'Did you notice more moss, water, wood, or wildlife?',
+      'What color stood out most today?',
+      'What detail do you think most visitors completely overlooked?',
+      'Who earned today\'s Forest Whisperer badge?'
+    ],
+    discovery: [
+      'Why is Ketchikan known as the "Salmon Capital of the World"?',
+      'Why are so many buildings on Creek Street built over the water?',
+      'What stories do totem poles tell?',
+      'Why is the Tongass National Forest one of the world\'s most important temperate rainforests?',
+      'Why are floatplanes such an important part of daily life in Southeast Alaska?'
+    ],
+    sharedDiscovery: [
+      'What did today\'s Indigenous art help you understand that you hadn\'t considered before?',
+      'If someone had only one hour to experience Ketchikan, where would you send them? Why?'
+    ],
+    mission: [
+      'A humpback whale',
+      'An orca',
+      'A sea otter',
+      'A harbor seal',
+      'A bald eagle',
+      'A waterfall',
+      'A lighthouse',
+      'Clouds changing the landscape',
+      'Water that looks different from this morning'
+    ],
+    logFields: [
+      "Today's favorite discovery",
+      "Something I understand better",
+      "One story I'll tell when I get home",
+      "Today's funniest moment",
+      "The photograph that captures today",
+      "Something I'm grateful for"
+    ],
+    fieldNote: 'Temperate rainforests run on moisture, mild coastal temperatures, and patience. Also moss. So much moss.'
+  },
+  {
+    num: 10,
+    location: 'Inside Passage',
+    title: 'Where the Journey Comes Together',
+    date: 'August 7',
+    word: 'Presence',
+    wordDef: 'Presence is what happens when nobody is quite sure what might appear next.',
+    intro: 'Most journeys are remembered by the places we visit. Today is a reminder that the space between destinations can produce its own best scenes. The ship moves through protected waterways. Mountains rise and disappear. An eagle may appear without warning. A whale may surface only once. Nothing is guaranteed. That uncertainty changes how we look. We stop expecting. We begin noticing.',
+    aweQ: 'What made you stop and say, "Wow," today?',
+    tableQs: [
+      'Which moment today felt completely unplanned?',
+      'If every photograph from today disappeared except one, which would you keep? Why?',
+      'What did you notice today that you probably wouldn\'t have noticed on the first day of this trip?',
+      'Looking back, how has the way you observe changed since arriving in Alaska?',
+      'Complete this sentence: Today reminded me that slowing down…'
+    ],
+    eagleEye: [
+      'What changed more often today: the weather, the light, the water, or the clouds?',
+      'What wildlife surprised you the most?',
+      'What quiet detail do you think almost everyone else missed?',
+      'Who earned today\'s Ocean Observer badge?'
+    ],
+    discovery: [
+      'Why is the Inside Passage usually much calmer than the open Pacific Ocean?',
+      'Why do humpback whales spend their summers in Alaska?',
+      'What creates Alaska\'s dramatic tides?',
+      'How were the deep fjords around us formed?',
+      'Why are bald eagles so successful along this coastline?'
+    ],
+    sharedDiscovery: [
+      'Looking back across the entire journey, which place changed the way you think about nature the most? Why?',
+      'What is one thing Alaska made you think about that has nothing to do with Alaska?'
+    ],
+    mission: [
+      'Thank one crew member by name',
+      'Watch the sunrise',
+      'Visit your favorite place on the ship one last time',
+      'Take one final group photograph',
+      'Write down one thing you\'re taking home that won\'t fit in your suitcase'
+    ],
+    logFields: [
+      "The moment that best captures this journey",
+      "One thing I learned about Alaska",
+      "One thing I learned about myself",
+      "Today's funniest moment",
+      "The photograph that best tells our story",
+      "Something I'm grateful for"
+    ],
+    fieldNote: 'The Inside Passage is sheltered by islands and the mainland, which is why today can feel calmer than the open Pacific. Geography deserves some credit for the mood.'
+  },
+  {
+    num: 11,
+    location: 'Homeward Bound',
+    title: 'The Journey Becomes a Memory',
+    date: 'August 8',
+    word: 'Afterglow',
+    wordDef: 'Some journeys continue after the luggage is unpacked and the laundry has made its own expedition.',
+    intro: 'This morning we\'ll leave Alaska. The mountains will slowly disappear behind us. The glaciers will become memories. The ship will continue welcoming new travelers. But something may have changed. Probably not Alaska. Possibly us. Good journeys do not always announce what they changed. We usually discover it later, often while trying to explain the trip to someone and realizing one story is turning into six.',
+    aweQ: 'Looking back across all eleven days, what was your greatest moment of awe?',
+    tableQs: [
+      'If someone asked, "What made Alaska different from every other place you\'ve visited?" what would you tell them?',
+      'Which day unexpectedly became your favorite? Why?',
+      'What photograph do you think you\'ll still enjoy looking at ten years from now?',
+      'What moment could never have been planned?',
+      'Complete this sentence: Before this trip I thought Alaska was… Now I think Alaska is…'
+    ],
+    eagleEye: [
+      'What surprised you most about yourself during this journey?',
+      'What surprised you most about one of your traveling companions?',
+      'What place would you return to first? Why?',
+      'Which question from this journal started the best conversation?'
+    ],
+    discovery: [
+      'Which discovery changed the way you now look at nature?',
+      'Complete this sentence: The most valuable thing I packed for this trip wasn\'t in my suitcase. It was…',
+      'If someone asked "Where should we go next?" — what would you say?',
+      'What do you want to keep noticing, even back home?'
+    ],
+    sharedDiscovery: [
+      'What do you hope you never forget?',
+      'What is one note you\'d write to yourself — not about travel, but about what you want to keep noticing?'
+    ],
+    mission: [
+      'Look back through every page of this journal',
+      'Share one specific memory with each person at the table',
+      'Agree on your group\'s single best photograph',
+      'Name the moment you\'ll still laugh about in ten years',
+      'Plan (even loosely) the next adventure'
+    ],
+    logFields: [
+      "The moment I hope never fades",
+      "The sound that will bring Alaska back",
+      "Someone who made the journey better, and how",
+      "The place I would return to first",
+      "Something Alaska made me think about",
+      "What I want to keep noticing"
+    ],
+    fieldNote: '"Some places are visited. Others keep showing up in the stories." — Alaska Afterglow'
+  }
+];
+
+const WILDLIFE_DATA = [
+  {
+    category: 'The Big Five of Denali',
+    emoji: '🏔️',
+    items: [
+      { name: 'Grizzly Bear', emoji: '🐻' },
+      { name: 'Moose', emoji: '🫎' },
+      { name: 'Caribou', emoji: '🦌' },
+      { name: 'Dall Sheep', emoji: '🐑' },
+      { name: 'Gray Wolf', emoji: '🐺' }
+    ]
+  },
+  {
+    category: 'Marine Life',
+    emoji: '🌊',
+    items: [
+      { name: 'Humpback Whale', emoji: '🐋' },
+      { name: 'Orca', emoji: '🐳' },
+      { name: 'Harbor Seal', emoji: '🦭' },
+      { name: 'Steller Sea Lion', emoji: '🦁' },
+      { name: 'Sea Otter', emoji: '🦦' },
+      { name: 'Porpoise', emoji: '🐬' }
+    ]
+  },
+  {
+    category: 'Birds',
+    emoji: '🦅',
+    items: [
+      { name: 'Bald Eagle', emoji: '🦅' },
+      { name: 'Raven', emoji: '🐦‍⬛' },
+      { name: 'Puffin', emoji: '🐧' },
+      { name: 'Black-legged Kittiwake', emoji: '🕊️' },
+      { name: 'Arctic Tern', emoji: '🐦' }
+    ]
+  },
+  {
+    category: 'Glaciers & Ice',
+    emoji: '🧊',
+    items: [
+      { name: 'Glacier Calving', emoji: '🧊' },
+      { name: 'Blue Glacier Ice', emoji: '💙' },
+      { name: 'Iceberg', emoji: '🏔️' },
+      { name: 'Floating Harbor Seals', emoji: '🦭' },
+      { name: 'Glacier Waterfall', emoji: '💧' },
+      { name: 'U-shaped Valley', emoji: '🏞️' },
+      { name: 'Glacial Moraine', emoji: '🪨' }
+    ]
+  },
+  {
+    category: 'Places Visited',
+    emoji: '📍',
+    items: [
+      { name: 'Denali National Park', emoji: '🏔️' },
+      { name: 'Alaska Railroad', emoji: '🚂' },
+      { name: 'Hubbard Glacier', emoji: '🧊' },
+      { name: 'Glacier Bay NP', emoji: '🌊' },
+      { name: 'Skagway', emoji: '⛏️' },
+      { name: 'Juneau', emoji: '🦅' },
+      { name: 'Ketchikan', emoji: '🐟' },
+      { name: 'Inside Passage', emoji: '🚢' }
+    ]
+  }
+];
+
+const GUIDE_DATA = [
+  {
+    ep: 1, title: 'Anchorage',
+    qas: [
+      { q: 'Why does Alaska stay light so late during summer?', a: 'Alaska is far north, and during Northern Hemisphere summer the tilt of the Earth points the Arctic and subarctic regions toward the Sun for much longer each day. This creates very long summer daylight hours.', fact: 'Anchorage can have more than 19 hours of daylight near the summer solstice.' },
+      { q: 'What does the name "Alaska" mean?', a: 'The name Alaska comes from an Aleut word often rendered as "Alyeska," commonly translated as "The Great Land" or "the mainland."' },
+      { q: 'What does Denali mean?', a: 'Denali comes from the Koyukon Athabascan language and is often translated as "The High One" or "The Great One."' },
+      { q: 'How do people live here?', a: 'This is meant as a conversation prompt. Good discussion points include adaptation, community, seasonal rhythms, transportation, long daylight in summer, winter darkness, self-reliance, and the way Alaska\'s landscape shapes daily choices.' }
+    ]
+  },
+  {
+    ep: 2, title: 'The Road to Denali',
+    qas: [
+      { q: 'What does Denali mean?', a: 'Denali means "The High One" or "The Great One," from the Koyukon Athabascan language.' },
+      { q: 'Why are many Alaska rivers cloudy, gray, or turquoise?', a: 'Glaciers grind rock into very fine particles called glacial flour. When this rock powder is suspended in water, it can make rivers look milky gray, pale blue, or turquoise.' },
+      { q: 'What creates a braided river?', a: 'Braided rivers form when a river carries large amounts of sediment. The water deposits gravel and sand bars, forcing the flow to split into many shifting channels.' },
+      { q: 'What is permafrost, and why does it matter?', a: 'Permafrost is ground that remains frozen for at least two consecutive years. In Alaska, thawing permafrost can affect roads, buildings, pipelines, and ecosystems because the ground can shift or collapse as ice within it melts.' }
+    ]
+  },
+  {
+    ep: 3, title: 'Denali National Park',
+    qas: [
+      { q: 'Why are private vehicles allowed on only a small portion of the park road?', a: 'Limiting private vehicle access reduces traffic, protects wildlife, and preserves the wilderness experience. Most visitors travel deeper into the park by bus.' },
+      { q: 'Why are moose legs so long?', a: 'Moose have long legs that help them walk through deep snow, marshes, streams, and thick vegetation. Their height also helps them browse willows and shrubs.' },
+      { q: 'Why are wolves hard to see in Denali?', a: 'Wolves roam large territories, avoid people, and occur at low densities. Even in healthy habitats, seeing a wolf is uncommon and special.' },
+      { q: 'How does a single river become many rivers?', a: 'A sediment-rich river deposits gravel and sand within its channel. As the water flows around these deposits, the river splits into multiple channels, creating a braided pattern.' }
+    ]
+  },
+  {
+    ep: 4, title: 'The Alaska Railroad',
+    qas: [
+      { q: 'Why do railroads often follow rivers instead of crossing mountains?', a: 'River valleys usually offer gentler grades and more natural pathways through mountainous terrain, making rail construction easier and safer.' },
+      { q: 'Why were many rivers gray, milky, or turquoise?', a: 'They carried glacial flour — fine rock particles produced by glacier erosion.' },
+      { q: 'Why was the Alaska Railroad originally built?', a: 'The Alaska Railroad helped connect Interior Alaska with coastal ports, allowing movement of people, freight, supplies, and resources.' },
+      { q: 'Why does Whittier have one major tunnel connection?', a: 'Whittier is surrounded by mountains and water. The Anton Anderson Memorial Tunnel provides a practical connection through the mountains and is shared by trains and vehicles on a scheduled basis.' },
+      { q: 'Why does a steel ship float?', a: 'A ship floats because of buoyancy. Its hull displaces a large volume of water, and the upward force of that displaced water supports the ship.' }
+    ]
+  },
+  {
+    ep: 5, title: 'Hubbard Glacier',
+    qas: [
+      { q: 'Why does glacier ice appear blue?', a: 'Dense glacier ice absorbs longer wavelengths of light more than shorter blue wavelengths. Blue light is scattered back to our eyes, making the ice appear blue.' },
+      { q: 'What is calving?', a: 'Calving is when a piece of glacier ice breaks off and falls into the water, creating an iceberg. It can happen suddenly as the glacier cracks under stress.' },
+      { q: 'What makes Hubbard Glacier unusual?', a: 'Hubbard Glacier is one of the few large tidewater glaciers in North America that has generally advanced rather than retreated during much of the recent historical period.' },
+      { q: 'Why does it feel colder near the glacier?', a: 'Ice cools the surrounding air. Winds moving over the glacier can carry that cold air toward the ship.' },
+      { q: 'Why do harbor seals use floating ice?', a: 'Floating ice provides resting and pupping areas away from many land predators while remaining close to rich feeding waters.' }
+    ]
+  },
+  {
+    ep: 6, title: 'Glacier Bay National Park',
+    qas: [
+      { q: 'Why do National Park Rangers come aboard ships entering Glacier Bay?', a: 'Rangers provide interpretation, explain the park\'s natural and cultural history, help visitors understand what they are seeing, and support protection of the sensitive ecosystem.' },
+      { q: 'Why are there so many waterfalls?', a: 'Glaciers carved steep valleys and cliffs. Snowmelt and rainwater flow down those slopes, creating waterfalls, especially during summer.' },
+      { q: 'What happened to Glacier Bay over the last few centuries?', a: 'Around the mid-1700s, much of present-day Glacier Bay was covered by ice. Since then, glaciers have retreated dramatically, exposing land and creating new habitat.' },
+      { q: 'How does bare land become forest?', a: 'This process is called ecological succession. Lichens, mosses, and pioneer plants begin growing on newly exposed land. Over time, shrubs and trees establish themselves, gradually forming forests.' },
+      { q: 'Why do humpback whales return in summer?', a: 'Summer brings abundant food, including small fish and krill. Humpbacks feed heavily in Alaska before migrating to warmer winter breeding areas.' }
+    ]
+  },
+  {
+    ep: 7, title: 'Skagway',
+    qas: [
+      { q: 'Why did thousands travel through Skagway during the Klondike Gold Rush?', a: 'Skagway became a major gateway to the Yukon goldfields after gold was discovered in the Klondike in the late 1890s.' },
+      { q: 'Why was the White Pass Trail difficult?', a: 'It was steep, muddy, dangerous, and crowded. Prospectors had to transport large supplies through rugged mountain terrain.' },
+      { q: 'Who was Soapy Smith?', a: 'Jefferson "Soapy" Smith was a con artist and crime boss who operated in Skagway during the Gold Rush period. He became one of the town\'s most notorious figures.' },
+      { q: 'Why was the White Pass & Yukon Route Railroad an engineering achievement?', a: 'The railroad was built through steep, rugged mountain terrain with challenging grades, bridges, tunnels, and sharp curves. Completed in 1900, it was a remarkable feat of frontier engineering.' },
+      { q: 'Who often made reliable income during the Gold Rush?', a: 'Merchants, transport operators, hotel owners, saloon owners, and service providers often made steadier income than prospectors searching for gold.' }
+    ]
+  },
+  {
+    ep: 8, title: 'Juneau',
+    qas: [
+      { q: 'Why isn\'t Juneau connected by road to the rest of North America?', a: 'Mountains, ice fields, waterways, and rugged terrain make a highway connection impractical. Juneau has local roads but no road connection to the continental highway system.' },
+      { q: 'Why has Mendenhall Glacier changed so much?', a: 'Mendenhall Glacier has retreated significantly over the past century as it has lost more ice than it gains. It is closely monitored as an example of glacier change.' },
+      { q: 'Why are floatplanes important in Southeast Alaska?', a: 'Many Southeast Alaska communities are not connected by roads. Floatplanes transport people, mail, supplies, and visitors between coastal and remote areas.' },
+      { q: 'Why do bald eagles thrive around Juneau?', a: 'The coastline, rivers, forests, and salmon runs provide abundant food and nesting habitat.' },
+      { q: 'How can a rainforest exist this far north?', a: 'Moist Pacific air, frequent rain, and relatively mild coastal temperatures support temperate rainforest dominated by spruce, hemlock, mosses, and ferns.' }
+    ]
+  },
+  {
+    ep: 9, title: 'Ketchikan',
+    qas: [
+      { q: 'Why is Ketchikan called the Salmon Capital of the World?', a: 'Ketchikan has abundant salmon runs and a long history of commercial fishing, sport fishing, and salmon processing.' },
+      { q: 'Why are Creek Street buildings built over water?', a: 'Ketchikan has limited flat land. Buildings were constructed on pilings over the creek and shoreline, allowing development in a narrow coastal valley.' },
+      { q: 'What stories do totem poles tell?', a: 'Totem poles can commemorate families, honor ancestors, represent clans, record events, or tell traditional stories. They are not objects of worship.' },
+      { q: 'Why is the Tongass National Forest important?', a: 'The Tongass is the largest national forest in the United States and one of the world\'s largest temperate rainforests. It supports rich wildlife habitat, salmon streams, old-growth forest, and coastal ecosystems.' },
+      { q: 'Why are floatplanes important in Ketchikan?', a: 'Many nearby communities and wilderness areas are difficult or impossible to reach by road, making floatplanes a practical transportation method.' }
+    ]
+  },
+  {
+    ep: 10, title: 'Inside Passage',
+    qas: [
+      { q: 'Why is the Inside Passage usually calmer than the open Pacific?', a: 'The route is sheltered by islands and the mainland, which protect ships from much of the open ocean swell.' },
+      { q: 'Why do humpback whales spend summers in Alaska?', a: 'Alaska\'s nutrient-rich waters provide abundant food. Humpbacks feed intensively in summer before migrating to warmer winter breeding grounds.' },
+      { q: 'What creates Alaska\'s dramatic tides?', a: 'Tides are caused mainly by the Moon\'s gravitational pull, with additional influence from the Sun. Alaska\'s complex coastline and narrow inlets can amplify tidal ranges.' },
+      { q: 'How were fjords formed?', a: 'Glaciers carved deep U-shaped valleys through mountains. When the glaciers retreated and sea levels rose, seawater filled those valleys, creating fjords.' },
+      { q: 'Why are bald eagles successful along the coast?', a: 'They benefit from abundant fish, salmon runs, shoreline habitat, large nesting trees, and protected natural areas.' }
+    ]
+  },
+  {
+    ep: 11, title: 'Homeward Bound',
+    qas: [
+      { q: 'What made Alaska different from every other place you\'ve visited?', a: 'This is a reflection prompt — there\'s no single answer. Encourage everyone to share. Common themes: scale, wildness, light, silence, wildlife, the feeling of being small in a vast landscape.' },
+      { q: 'Which day unexpectedly became your favorite?', a: 'Another reflection prompt. This question often surfaces surprising answers — sometimes the quietest days, the travel days, or the unexpected moments become the favorites.' },
+      { q: 'What moment could never have been planned?', a: 'The best travel memories often come from unplanned moments. This question celebrates spontaneity and openness — the things that cannot be booked in advance.' }
+    ]
+  }
+];
+
+const MEMORY_PROMPTS = [
+  { icon: '✦', title: 'The Moment', prompt: 'The moment I hope never fades:' },
+  { icon: '🎵', title: 'The Sound', prompt: 'The sound that will bring Alaska back:' },
+  { icon: '🧭', title: 'The Person', prompt: 'Someone who made the journey better, and how:' },
+  { icon: '📍', title: 'The Place', prompt: 'The place I would return to first:' },
+  { icon: '💭', title: 'The Takeaway', prompt: 'Something Alaska made me think about:' },
+  { icon: '📷', title: 'The Photograph', prompt: 'The photo that belongs on the first page of the story:' },
+  { icon: '😂', title: 'The Quote', prompt: 'The quote that makes no sense to anyone outside the group:' },
+  { icon: '🌟', title: 'The Surprise', prompt: 'The thing about Alaska I did not expect:' }
+];
+
+const BADGES = [
+  { emoji: '👁️', name: 'Eagle Eye', desc: 'For noticing the detail everyone else missed.' },
+  { emoji: '🔬', name: 'Naturalist', desc: 'For discovering something about Alaska\'s wildlife, plants, geology, or ecosystems and sharing it with the group.' },
+  { emoji: '📷', name: 'Photographer', desc: 'For capturing the image that best tells today\'s story.' },
+  { emoji: '🧭', name: 'Pathfinder', desc: 'For finding the best viewpoint, hidden corner, or unexpected discovery.' },
+  { emoji: '🤔', name: 'Curious Explorer', desc: 'For asking the question that made everyone stop and think.' },
+  { emoji: '⏸️', name: 'Moment Keeper', desc: 'For helping everyone slow down and appreciate a special moment.' },
+  { emoji: '🔥', name: 'Campfire Storyteller', desc: 'For sharing the story everyone will still laugh about years from now.' },
+  { emoji: '🤝', name: 'Connector', desc: 'For making everyone feel included, whether a longtime friend or someone new we met along the way.' }
+];
+
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+let currentEpisode = 0;
+let currentScreen = 'cover';
+
+function load(key, fallback) {
+  try { const v = localStorage.getItem('ak_' + key); return v !== null ? JSON.parse(v) : fallback; }
+  catch { return fallback; }
+}
+function save(key, val) {
+  try { localStorage.setItem('ak_' + key, JSON.stringify(val)); } catch {}
+}
+
+// ═══════════════════════════════════════════════════
+//  SCREEN NAVIGATION
+// ═══════════════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('[id^="nav-' + name + '"]').forEach(b => b.classList.add('active'));
+  currentScreen = name;
+  if (name === 'journal') renderJournal(currentEpisode);
+  if (name === 'wildlife') renderWildlife();
+  if (name === 'guide') renderGuide();
+  if (name === 'memory') renderMemory();
+}
+
+// ═══════════════════════════════════════════════════
+//  JOURNAL
+// ═══════════════════════════════════════════════════
+function buildEpisodeSelector() {
+  const scroll = document.getElementById('episode-scroll');
+  EPISODES.forEach((ep, i) => {
+    const pill = document.createElement('button');
+    pill.className = 'ep-pill' + (i === 0 ? ' active' : '');
+    pill.textContent = 'Day ' + ep.num;
+    pill.id = 'pill-' + i;
+    pill.onclick = () => selectEpisode(i);
+    scroll.appendChild(pill);
+  });
+}
+
+function selectEpisode(idx) {
+  document.querySelectorAll('.ep-pill').forEach(p => p.classList.remove('active'));
+  document.getElementById('pill-' + idx).classList.add('active');
+  currentEpisode = idx;
+  renderJournal(idx);
+  document.getElementById('pill-' + idx).scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+}
+
+function renderJournal(idx) {
+  const ep = EPISODES[idx];
+  document.getElementById('day-eyebrow').textContent = 'Episode ' + ep.num + ' · ' + ep.location;
+  document.getElementById('day-title').textContent = ep.title;
+  document.getElementById('day-subtitle').textContent = ep.date;
+  const body = document.getElementById('journal-body');
+  body.scrollTop = 0;
+  body.innerHTML = '';
+
+  // Intro
+  body.innerHTML += `
+    <div class="day-intro">
+      <div class="day-intro-word">Today's Word: <em>${ep.word}</em></div>
+      <div class="day-intro-def">${ep.wordDef}</div>
+      <div class="day-intro-text">${ep.intro}</div>
+    </div>`;
+
+  // Awe Moment
+  body.innerHTML += `
+    <div class="awe-moment">
+      <div class="awe-label">The Awe Moment</div>
+      <div class="awe-question">${ep.aweQ}</div>
+      <textarea class="awe-textarea" placeholder="Write it here while it's still vivid…" id="awe-${idx}" onchange="saveField('awe-${idx}', this.value)">${load('awe-'+idx,'')}</textarea>
+    </div>`;
+
+  // Around the Table
+  body.innerHTML += buildSection('💬', 'Around the Table', ep.tableQs.map((q, i) => `<div class="q-item"><div class="q-num">Question ${i+1}</div><div class="q-text">${q}</div></div>`).join(''));
+
+  // Eagle Eye
+  body.innerHTML += buildSection('👁️', 'Eagle Eye', ep.eagleEye.map((q, i) => `<div class="q-item"><div class="q-num">Observation ${i+1}</div><div class="q-text">${q}</div></div>`).join(''));
+
+  // Discovery
+  body.innerHTML += buildSection('🔭', 'Discovery Questions', ep.discovery.map((q, i) => `<div class="q-item"><div class="q-num">Discovery ${i+1}</div><div class="q-text">${q}</div></div>`).join(''));
+
+  // Shared Discovery
+  body.innerHTML += buildSection('✦', 'Shared Discovery', ep.sharedDiscovery.map((q, i) => `<div class="q-item"><div class="q-num">${i+1}</div><div class="q-text">${q}</div></div>`).join(''));
+
+  // Tomorrow's Mission
+  const missionId = `mission-${idx}`;
+  const missionChecks = load(missionId, {});
+  let missionHTML = '<ul class="mission-list">' + ep.mission.map((m, i) => {
+    const checked = missionChecks[i] ? 'checked' : '';
+    return `<li class="mission-item ${checked}" onclick="toggleMission('${missionId}', ${i}, this)">
+      <div class="mission-check">${checked ? '✓' : ''}</div>
+      <div class="mission-text">${m}</div></li>`;
+  }).join('') + '</ul>';
+  body.innerHTML += buildSection('🎯', 'Mission Checklist', missionHTML);
+
+  // Expedition Log
+  let logHTML = ep.logFields.map((label, i) => {
+    const fid = `log-${idx}-${i}`;
+    return `<div class="journal-entry">
+      <label class="journal-label">${label}</label>
+      <textarea class="journal-input" placeholder="…" id="${fid}" onchange="saveField('${fid}', this.value)">${load(fid,'')}</textarea>
+    </div>`;
+  }).join('');
+  body.innerHTML += buildSection('📝', 'Expedition Log', logHTML);
+
+  // Field Note
+  body.innerHTML += `<div class="field-note"><strong>Field Note</strong>${ep.fieldNote}</div>`;
+  body.innerHTML += '<div class="spacer-bottom"></div>';
+
+  // Resize all textareas now that content is restored from localStorage
+  requestAnimationFrame(() => autoResizeAll(body));
+}
+
+function buildSection(icon, title, content) {
+  return `<div class="section-card">
+    <div class="section-header">
+      <span class="section-icon">${icon}</span>
+      <span class="section-title">${title}</span>
+    </div>
+    <div class="section-body">${content}</div>
+  </div>`;
+}
+
+function saveField(key, val) {
+  save(key, val);
+}
+
+function toggleMission(id, idx, el) {
+  const data = load(id, {});
+  data[idx] = !data[idx];
+  save(id, data);
+  el.classList.toggle('checked', data[idx]);
+  el.querySelector('.mission-check').textContent = data[idx] ? '✓' : '';
+}
+
+// ═══════════════════════════════════════════════════
+//  WILDLIFE
+// ═══════════════════════════════════════════════════
+function renderWildlife() {
+  const body = document.getElementById('wildlife-body');
+  body.innerHTML = '';
+  let totalChecked = 0;
+  let total = 0;
+
+  WILDLIFE_DATA.forEach((cat, catIdx) => {
+    body.innerHTML += `<div class="tracker-section"><div class="tracker-title">${cat.emoji} ${cat.category}</div><div class="tracker-grid" id="wcat-${catIdx}"></div></div>`;
+    cat.items.forEach((item, itemIdx) => {
+      total++;
+      const key = `w-${catIdx}-${itemIdx}`;
+      const checked = load(key, false);
+      if (checked) totalChecked++;
+    });
+  });
+
+  // Re-render with actual DOM
+  body.innerHTML = '';
+  total = 0;
+  totalChecked = 0;
+
+  WILDLIFE_DATA.forEach((cat, catIdx) => {
+    let gridHTML = '';
+    cat.items.forEach((item, itemIdx) => {
+      total++;
+      const key = `w-${catIdx}-${itemIdx}`;
+      const checked = load(key, false);
+      if (checked) totalChecked++;
+      gridHTML += `<div class="tracker-item ${checked ? 'checked' : ''}" onclick="toggleWildlife('${key}', this)">
+        <div class="tracker-check">${checked ? '✓' : ''}</div>
+        <span class="tracker-emoji">${item.emoji}</span>
+        <span class="tracker-name">${item.name}</span>
+      </div>`;
+    });
+    body.innerHTML += `<div class="tracker-section">
+      <div class="tracker-title">${cat.emoji} ${cat.category}</div>
+      <div class="tracker-grid">${gridHTML}</div>
+    </div>`;
+  });
+
+  updateTrackerProgress(totalChecked, total);
+}
+
+function toggleWildlife(key, el) {
+  const was = load(key, false);
+  save(key, !was);
+  el.classList.toggle('checked', !was);
+  el.querySelector('.tracker-check').textContent = !was ? '✓' : '';
+  // recount
+  let total = 0, checked = 0;
+  WILDLIFE_DATA.forEach((cat, ci) => cat.items.forEach((_, ii) => {
+    total++;
+    if (load(`w-${ci}-${ii}`, false)) checked++;
+  }));
+  updateTrackerProgress(checked, total);
+}
+
+function updateTrackerProgress(checked, total) {
+  document.getElementById('tracker-count').textContent = checked + ' of ' + total;
+  document.getElementById('tracker-fill').style.width = (total ? (checked/total*100) : 0) + '%';
+}
+
+// ═══════════════════════════════════════════════════
+//  GUIDE
+// ═══════════════════════════════════════════════════
+function renderGuide() {
+  const body = document.getElementById('guide-body');
+  body.innerHTML = '';
+
+  GUIDE_DATA.forEach((ep) => {
+    let qaHTML = '';
+    ep.qas.forEach((qa, qi) => {
+      const aid = `guide-${ep.ep}-${qi}`;
+      const factLine = qa.fact ? `<span class="did-you-know">✦ Did you know? ${qa.fact}</span>` : '';
+      qaHTML += `<div>
+        <div class="answer-question" onclick="toggleAnswer('${aid}', this)" id="q-${aid}">
+          <div class="answer-q-icon">${qi+1}</div>
+          <div class="answer-q-text">${qa.q}</div>
+          <div class="answer-chevron">›</div>
+        </div>
+        <div class="answer-body" id="${aid}">
+          <div class="answer-text">${qa.a}${factLine}</div>
+        </div>
+      </div>`;
+    });
+
+    body.innerHTML += `
+      <div class="guide-ep-header">
+        <div class="guide-ep-title">Episode ${ep.ep} · ${ep.title}</div>
+        <div class="guide-ep-sub">Tap a question to reveal the answer</div>
+      </div>
+      <div class="answer-card">${qaHTML}</div>`;
+  });
+
+  body.innerHTML += `<div class="guide-note">Episode 11 is reflective. All previous answers remain available above.</div>`;
+}
+
+function toggleAnswer(id, header) {
+  const body = document.getElementById(id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  header.classList.toggle('answer-open', !isOpen);
+}
+
+// ═══════════════════════════════════════════════════
+//  MEMORY PORTFOLIO
+// ═══════════════════════════════════════════════════
+function renderMemory() {
+  const body = document.getElementById('memory-body');
+  body.innerHTML = '';
+
+  MEMORY_PROMPTS.forEach((m, i) => {
+    const key = `memory-${i}`;
+    body.innerHTML += `<div class="memory-card">
+      <div class="memory-card-title">${m.icon} ${m.title}</div>
+      <div class="memory-card-prompt">${m.prompt}</div>
+      <textarea placeholder="…" onchange="save('${key}', this.value)">${load(key,'')}</textarea>
+    </div>`;
+  });
+
+  body.innerHTML += `<div class="section-divider"></div>`;
+
+  // Badges
+  body.innerHTML += `<div class="section-card" style="margin:0 20px">
+    <div class="section-header">
+      <span class="section-icon">🏅</span>
+      <span class="section-title">Expedition Badges</span>
+    </div>
+    <div class="badges-section">
+      ${BADGES.map((b, i) => {
+        const key = `badge-${i}`;
+        return `<div class="badge-item">
+          <div class="badge-emoji">${b.emoji}</div>
+          <div class="badge-info">
+            <div class="badge-name">${b.name}</div>
+            <div class="badge-desc">${b.desc}</div>
+            <div class="badge-awardee">
+              <span>Awarded to:</span>
+              <input type="text" placeholder="Name…" value="${load(key,'')}" onchange="save('${key}', this.value)"/>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  body.innerHTML += `<div class="spacer-bottom"></div>`;
+  requestAnimationFrame(() => autoResizeAll(body));
+}
+
+// ═══════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ═══════════════════════════════════════════════════
+//  AUTO-RESIZE helper (also fires on loaded content)
+// ═══════════════════════════════════════════════════
+function autoResizeAll(container) {
+  container = container || document;
+  container.querySelectorAll('textarea').forEach(ta => {
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  INSTALL PROMPT
+// ═══════════════════════════════════════════════════
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  // Show subtle install hint after 3 seconds on cover screen
+  setTimeout(() => {
+    if (currentScreen === 'cover') showToast('Add to Home Screen for the full experience ✦');
+  }, 3000);
+});
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  buildEpisodeSelector();
+  // Render journal so first episode is ready
+  renderJournal(0);
+
+  // Auto-textarea resize on input
+  document.addEventListener('input', e => {
+    if (e.target.tagName === 'TEXTAREA') {
+      e.target.style.height = 'auto';
+      e.target.style.height = e.target.scrollHeight + 'px';
+    }
+  });
+
+  // Service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+});
+</script>
+</body>
+</html>
