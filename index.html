@@ -214,8 +214,54 @@ body {
   line-height: 1.7;
   max-width: 300px;
 }
-.offline-status {
+.cover-actions {
   margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+}
+.cover-action-btn {
+  width: 100%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: all 0.2s;
+  color: var(--ivory);
+}
+.cover-action-btn.primary {
+  background: rgba(107,74,16,0.55);
+  border-color: rgba(232,192,112,0.45);
+}
+.cover-action-btn:active { opacity: 0.65; transform: scale(0.98); }
+.cover-action-icon { font-size: 1.6rem; flex-shrink: 0; }
+.cover-action-text { flex: 1; }
+.cover-action-text strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--ivory);
+  letter-spacing: 0.02em;
+  margin-bottom: 2px;
+}
+.cover-action-text small {
+  font-size: 0.75rem;
+  color: rgba(245,240,232,0.65);
+  font-style: italic;
+}
+.cover-action-btn.primary .cover-action-text strong { color: #F5E8C0; }
+.cover-action-btn.primary .cover-action-text small  { color: rgba(245,232,192,0.75); }
+
+.offline-status {
+  margin-top: 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1063,14 +1109,26 @@ body {
       July 29 – August 8
     </div>
     <div class="cover-quote">"A good journey gives you views. A great one gives you stories with oddly specific details."</div>
-    <div class="offline-status">
-      <div class="status-pill not-cached" id="cache-status">
+
+    <div class="cover-actions">
+      <button class="cover-action-btn primary" onclick="exportJournal()">
+        <span class="cover-action-icon">📄</span>
+        <span class="cover-action-text">
+          <strong>Save Journal to File</strong>
+          <small>Download all your answers as a text file</small>
+        </span>
+      </button>
+      <button class="cover-action-btn" onclick="saveForOffline()">
+        <span class="cover-action-icon">📵</span>
+        <span class="cover-action-text">
+          <strong>Save for Offline Use</strong>
+          <small>Works with no Wi-Fi or signal</small>
+        </span>
+      </button>
+      <div class="status-pill not-cached" id="cache-status" style="margin-top:4px">
         <div class="status-dot"></div>
         <span id="cache-status-text">Checking offline status…</span>
       </div>
-      <button class="btn-save-offline" id="btn-save-offline" onclick="saveForOffline()" style="display:none">
-        ⬇ Save for Offline Use
-      </button>
     </div>
   </div>
   <nav class="bottom-nav">
@@ -2397,25 +2455,147 @@ async function checkCacheStatus() {
   }
 }
 
-async function saveForOffline() {
-  const btn = document.getElementById('btn-save-offline');
-  if (btn) { btn.textContent = '⏳ Saving…'; btn.disabled = true; }
+// ═══════════════════════════════════════════════════
+//  EXPORT JOURNAL TO FILE
+// ═══════════════════════════════════════════════════
+function exportJournal() {
+  const lines = [];
+  const hr  = '═'.repeat(52);
+  const hr2 = '─'.repeat(52);
+  const today = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
 
+  lines.push(hr);
+  lines.push('  ALASKA AFTERGLOW — EXPEDITION JOURNAL');
+  lines.push('  Holland America D2L Denali + Glacier Discovery');
+  lines.push('  July 29 – August 8');
+  lines.push(`  Exported: ${today}`);
+  lines.push(hr);
+  lines.push('');
+
+  // Check if anything has been written at all
+  let totalEntries = 0;
+
+  // ── 11 Episodes ──────────────────────────────────
+  EPISODES.forEach((ep, i) => {
+    const awe = load(`awe-${i}`, '');
+    const logValues = ep.logFields.map((_, j) => load(`log-${i}-${j}`, ''));
+    const missionData = load(`mission-${i}`, {});
+    const hasContent = awe || logValues.some(v => v);
+
+    lines.push('');
+    lines.push(hr2);
+    lines.push(`  EPISODE ${ep.num}  ·  ${ep.location.toUpperCase()}`);
+    lines.push(`  ${ep.title}`);
+    lines.push(`  ${ep.date}`);
+    lines.push(hr2);
+
+    lines.push('');
+    lines.push(`✦ AWE MOMENT`);
+    lines.push(`  ${ep.aweQ}`);
+    if (awe) { lines.push(''); lines.push(`  ${awe}`); totalEntries++; }
+    else lines.push('  (not yet written)');
+
+    lines.push('');
+    lines.push('📝 EXPEDITION LOG');
+    ep.logFields.forEach((label, j) => {
+      const val = logValues[j];
+      lines.push('');
+      lines.push(`  ${label.toUpperCase()}`);
+      if (val) { lines.push(`  ${val}`); totalEntries++; }
+      else lines.push('  (not yet written)');
+    });
+
+    // Mission checklist
+    const checkedItems = ep.mission.filter((_, idx) => missionData[idx]);
+    if (Object.keys(missionData).length > 0) {
+      lines.push('');
+      lines.push('🎯 MISSION CHECKLIST');
+      ep.mission.forEach((m, idx) => {
+        lines.push(`  ${missionData[idx] ? '✓' : '○'}  ${m}`);
+      });
+    }
+  });
+
+  // ── Wildlife Tracker ─────────────────────────────
+  lines.push('');
+  lines.push('');
+  lines.push(hr);
+  lines.push('  WILDLIFE & DISCOVERY TRACKER');
+  lines.push(hr);
+  WILDLIFE_DATA.forEach(cat => {
+    lines.push('');
+    lines.push(`  ${cat.category.toUpperCase()}`);
+    cat.items.forEach((item, itemIdx) => {
+      const catIdx = WILDLIFE_DATA.indexOf(cat);
+      const checked = load(`w-${catIdx}-${itemIdx}`, false);
+      lines.push(`  ${checked ? '✓' : '○'}  ${item.name}`);
+      if (checked) totalEntries++;
+    });
+  });
+
+  // ── Memory Portfolio ─────────────────────────────
+  lines.push('');
+  lines.push('');
+  lines.push(hr);
+  lines.push('  THE MEMORY PORTFOLIO');
+  lines.push(hr);
+  MEMORY_PROMPTS.forEach((m, i) => {
+    const val = load(`memory-${i}`, '');
+    lines.push('');
+    lines.push(`  ${m.title.toUpperCase()}`);
+    lines.push(`  ${m.prompt}`);
+    if (val) { lines.push(`  ${val}`); totalEntries++; }
+    else lines.push('  (not yet written)');
+  });
+
+  // ── Expedition Badges ────────────────────────────
+  lines.push('');
+  lines.push('');
+  lines.push(hr);
+  lines.push('  EXPEDITION BADGES');
+  lines.push(hr);
+  BADGES.forEach((b, i) => {
+    const awardee = load(`badge-${i}`, '');
+    lines.push('');
+    lines.push(`  ${b.name.toUpperCase()}`);
+    lines.push(`  ${b.desc}`);
+    if (awardee) { lines.push(`  Awarded to: ${awardee}`); totalEntries++; }
+    else lines.push('  Awarded to: (not yet assigned)');
+  });
+
+  // ── Footer ───────────────────────────────────────
+  lines.push('');
+  lines.push('');
+  lines.push(hr);
+  lines.push('  "Some places are visited.');
+  lines.push('   Others keep showing up in the stories."');
+  lines.push('');
+  lines.push(`  ${totalEntries} entries recorded  ·  Alaska Afterglow`);
+  lines.push(hr);
+
+  const text = lines.join('\n');
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `Alaska_Afterglow_Journal_${today.replace(/,?\s+/g,'_')}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast(`Journal saved — ${totalEntries} entries exported ✓`);
+}
+
+async function saveForOffline() {
   try {
     const cache = await caches.open('alaska-afterglow-v1');
-    const assets = [
-      './index.html',
-      './manifest.json',
-      './sw.js',
-      './icons/icon-192.png',
-      './icons/icon-512.png'
-    ];
+    const assets = ['./index.html','./manifest.json','./sw.js','./icons/icon-192.png','./icons/icon-512.png'];
     await cache.addAll(assets);
-    showToast('Saved! Works without Wi-Fi now ✓');
+    showToast('App saved — works without Wi-Fi now ✓');
     checkCacheStatus();
   } catch (e) {
-    if (btn) { btn.textContent = '⬇ Save for Offline Use'; btn.disabled = false; }
-    showToast('Could not save — check your connection');
+    showToast('Could not save — check your connection first');
   }
 }
 </script>
